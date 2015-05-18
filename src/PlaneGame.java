@@ -1,15 +1,23 @@
 import org.newdawn.slick.*;
 
-public class PlaneGame extends BasicGame
-{
-    Image land;
-    Image plane;
-    float x;
-    float y;
-    float scale;
+class PlaneGame extends BasicGame {
+    private Image land;
+    private Image plane;
+    private float landX;
+    private float landY;
+    private float x;
+    private float y;
+    private float scale;
 
-    public PlaneGame() {
-        super("Hello World");
+    private PlaneGame() {
+        super("Plane Game");
+    }
+
+    public static void main(String[] args) throws SlickException {
+        AppGameContainer app = new AppGameContainer(new PlaneGame());
+
+        app.setDisplayMode(800, 600, false);
+        app.start();
     }
 
     @Override
@@ -18,6 +26,8 @@ public class PlaneGame extends BasicGame
         plane = new Image("/data/plane.png");
         x = 400;
         y = 300;
+        landX = 0;
+        landY = 0;
         scale = 1.0f;
     }
 
@@ -25,44 +35,40 @@ public class PlaneGame extends BasicGame
     public void update(GameContainer gc, int delta) throws SlickException {
         Input input = gc.getInput();
 
+        float hip = 0.4f * delta;
+
         if (input.isKeyDown(Input.KEY_A)) {
-            plane.rotate(-0.2f * delta);
+            x -= hip;
         }
 
         if (input.isKeyDown(Input.KEY_D)) {
-            plane.rotate(0.2f * delta);
+            x += hip;
         }
 
         if (input.isKeyDown(Input.KEY_W)) {
-            float hip = 0.4f * delta;
-
-            float rotation = plane.getRotation();
-
-            x+= hip * Math.sin(Math.toRadians(rotation));
-            y-= hip * Math.cos(Math.toRadians(rotation));
+            y -= hip;// * Math.cos(Math.toRadians(rotation));
         }
 
-        if (input.isKeyDown(Input.KEY_2)) {
-            scale += (scale >= 5.0f) ? 0 : 0.1f;
-            plane.setCenterOfRotation(plane.getWidth()/2.0f*scale, plane.getHeight()/2.0f*scale);
+        if (input.isKeyDown(Input.KEY_S)) {
+            y += hip;
         }
-        if (input.isKeyDown(Input.KEY_1)) {
-            scale -= (scale <= 1.0f) ? 0 : 0.1f;
-            plane.setCenterOfRotation(plane.getWidth()/2.0f*scale, plane.getHeight()/2.0f*scale);
-        }
+
+        Bullet.processBullets(x, y, delta, input);
+
+        scrollLand(delta);
+    }
+
+    private void scrollLand(int delta) {
+        landY += 0.3f * delta;
+        if (landY >= 600) landY = 0;
     }
 
     @Override
     public void render(GameContainer gc, Graphics g) throws SlickException {
-        land.draw(0, 0);
+        land.draw(landX, landY);
+        land.draw(landX, landY - 600);
         plane.draw(x, y, scale);
-    }
-
-    public static void main(String[] args) throws SlickException {
-        AppGameContainer app = new AppGameContainer(new PlaneGame());
-
-        app.setDisplayMode(800, 600, false);
-        app.start();
+        Bullet.removeUnseenBullets();
     }
 
 }
